@@ -1,12 +1,12 @@
-cff-version: 1.1.0
+cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 authors:
   - family-names: "Carvalho dos Santos"
     given-names: "Adriano"
     email: "adriano.santos@magnasoluto.com.br"
     orcid: "https://orcid.org/0009-0009-3407-6189"
-title: "PTEF - Pronunciation-Time Estimation Framework for Brazilian Portuguese"
-version: v1.0.0
+title: "PTEF: Pronunciation-Time Estimation Framework for Brazilian Portuguese"
+version: "1.0.1"
 date-released: 2025-09-10
 url: "https://github.com/MagnaSoluto/PTEF"
 license: MIT
@@ -20,13 +20,15 @@ keywords:
   - TTS
   - numerical
   - sequences
-abstract: "A probabilistic framework for estimating pronunciation time of numerical sequences in Brazilian Portuguese. Implements O(log N) algorithms for token counting, lognormal duration models, and prosodic pause estimation."
+abstract: >
+  A probabilistic framework for estimating pronunciation time of numerical sequences
+  in Brazilian Portuguese. Implements O(log N) algorithms for token counting,
+  lognormal duration models, and prosodic pause estimation.
 preferred-citation:
-  type: article
+  type: report
   title: "PTEF: Um Framework Probabilístico para Estimar o Tempo de Pronúncia de Sequências Numéricas no Português Brasileiro"
   authors:
-    - family-names: "Cavalho dos Santos"
+    - family-names: "Carvalho dos Santos"
       given-names: "Adriano"
-  journal: "arXiv preprint"
   year: 2025
   url: "https://github.com/MagnaSoluto/PTEF"
