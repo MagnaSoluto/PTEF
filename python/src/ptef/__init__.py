@@ -11,6 +11,9 @@ from .lexicon import syllables
 from .combinatorics import count_tokens_up_to_N
 from .duration import expected_syllable_duration, variance_syllable_duration
 from .pauses import count_pauses
+from .context import ContextModel, extract_context_features, expected_duration_with_context, variance_duration_with_context
+from .bootstrap import bootstrap_estimate, BootstrapConfig
+from .validation import run_full_validation, ValidationConfig
 
 __version__ = "0.1.0"
 __author__ = "PTEF Team"
@@ -25,4 +28,12 @@ __all__ = [
     "expected_syllable_duration",
     "variance_syllable_duration",
     "count_pauses",
+    "ContextModel",
+    "extract_context_features",
+    "expected_duration_with_context",
+    "variance_duration_with_context",
+    "bootstrap_estimate",
+    "BootstrapConfig",
+    "run_full_validation",
+    "ValidationConfig",
 ]

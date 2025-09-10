@@ -36,6 +36,12 @@ def cli():
 @click.option('--no-structural-pauses', is_flag=True, help='Disable structural pauses')
 @click.option('--json', 'output_json', is_flag=True, help='Output in JSON format')
 @click.option('--ci/--no-ci', default=True, help='Include confidence intervals')
+@click.option('--use-context', is_flag=True, help='Use context-aware duration modeling')
+@click.option('--use-bootstrap', is_flag=True, help='Use bootstrap for confidence intervals')
+@click.option('--bootstrap-samples', default=1000, type=int, help='Number of bootstrap samples')
+@click.option('--bootstrap-method', default='percentile', 
+              type=click.Choice(['percentile', 'bca', 'studentized']),
+              help='Bootstrap method for confidence intervals')
 def estimate_cmd(
     n: int,
     policy: str,
@@ -52,7 +58,11 @@ def estimate_cmd(
     structural_pause_prob: Optional[float],
     no_structural_pauses: bool,
     output_json: bool,
-    ci: bool
+    ci: bool,
+    use_context: bool,
+    use_bootstrap: bool,
+    bootstrap_samples: int,
+    bootstrap_method: str
 ):
     """Estimate pronunciation time for numbers 1 to N."""
     
@@ -81,11 +91,30 @@ def estimate_cmd(
             structural_pause_prob=structural_pause_prob or 0.5
         )
     
+    # Create context model if requested
+    context_model = None
+    if use_context:
+        from .context import ContextModel
+        context_model = ContextModel()
+    
+    # Create bootstrap config if requested
+    bootstrap_config = None
+    if use_bootstrap:
+        from .bootstrap import BootstrapConfig
+        bootstrap_config = BootstrapConfig(
+            n_bootstrap=bootstrap_samples,
+            method=bootstrap_method
+        )
+    
     params = create_params(
         duration_params=duration_params,
         pause_params=pause_params,
+        context_model=context_model,
+        bootstrap_config=bootstrap_config,
         block_size=b,
-        include_structural_pauses=not no_structural_pauses
+        include_structural_pauses=not no_structural_pauses,
+        use_context=use_context,
+        use_bootstrap=use_bootstrap
     )
     
     # Run estimation
@@ -172,6 +201,58 @@ def validate(n: int, policy: str, b: int, output_json: bool):
         else:
             click.echo(f"Validation PASSED for N={n}")
             click.echo(f"Total tokens: {sum(direct_counts.values())}")
+
+
+@cli.command()
+@click.option('--numbers', default='1,10,100,1000', help='Comma-separated list of numbers to validate')
+@click.option('--tts-engines', default='espeak,festival', help='Comma-separated list of TTS engines')
+@click.option('--bootstrap-samples', default=500, type=int, help='Number of bootstrap samples')
+@click.option('--json', 'output_json', is_flag=True, help='Output in JSON format')
+def validate_cmd(numbers: str, tts_engines: str, bootstrap_samples: int, output_json: bool):
+    """Run validation with TTS and human speakers."""
+    from .validation import run_full_validation, ValidationConfig
+    
+    # Parse numbers
+    try:
+        test_numbers = [int(n.strip()) for n in numbers.split(',')]
+    except ValueError:
+        click.echo("Error: Invalid numbers format. Use comma-separated integers.", err=True)
+        return
+    
+    # Parse TTS engines
+    engines = [e.strip() for e in tts_engines.split(',')]
+    
+    # Create validation config
+    config = ValidationConfig(
+        tts_engines=engines,
+        bootstrap_samples=bootstrap_samples
+    )
+    
+    click.echo("Running validation...")
+    
+    try:
+        # Run validation
+        report = run_full_validation(test_numbers, config)
+        
+        if output_json:
+            click.echo(json.dumps(report, indent=2))
+        else:
+            # Pretty print results
+            click.echo("\n=== Validation Report ===")
+            click.echo(f"TTS Analysis: {len(report['tts_analysis'])} engines tested")
+            click.echo(f"Human Analysis: {len(report['human_analysis'])} speakers tested")
+            click.echo(f"Ablation Analysis: {len(report['ablation_analysis'])} methods compared")
+            
+            if report['recommendations']:
+                click.echo("\nRecommendations:")
+                for i, rec in enumerate(report['recommendations'], 1):
+                    click.echo(f"  {i}. {rec}")
+            else:
+                click.echo("\nNo specific recommendations - validation passed criteria!")
+                
+    except Exception as e:
+        click.echo(f"Error during validation: {e}", err=True)
+        return
 
 
 @cli.command()
