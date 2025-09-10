@@ -1,0 +1,49 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Python
+*.py text diff=python
+
+# R
+*.R text diff=r
+*.Rmd text diff=markdown
+*.Rproj text
+
+# Jupyter Notebooks
+*.ipynb text diff=ipynb
+
+# Markdown
+*.md text diff=markdown
+
+# YAML
+*.yml text diff=yaml
+*.yaml text diff=yaml
+
+# JSON
+*.json text diff=json
+
+# CSV
+*.csv text diff=csv
+
+# Data files
+*.csv linguist-language=CSV
+*.tsv linguist-language=TSV
+
+# Documentation
+docs/*.md text diff=markdown
+README.md text diff=markdown
+CHANGELOG.md text diff=markdown
+
+# Configuration files
+*.toml text
+*.cfg text
+*.ini text
+*.conf text
+
+# License
+LICENSE text
+CITATION.cff text
+
+# Git attributes
+.gitattributes text
+.gitignore text

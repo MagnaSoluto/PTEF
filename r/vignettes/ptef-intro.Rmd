@@ -1,0 +1,309 @@
+---
+title: "PTEF - Introdução ao Framework de Estimação de Tempo de Pronúncia"
+author: "PTEF Team"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 2
+vignette: >
+  %\VignetteIndexEntry{PTEF - Introdução ao Framework de Estimação de Tempo de Pronúncia}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 8,
+  fig.height = 6
+)
+```
+
+# Introdução
+
+O PTEF (Pronunciation-Time Estimation Framework) é um framework probabilístico para estimar o tempo de pronúncia de sequências numéricas em português brasileiro. Este pacote R fornece implementações eficientes de algoritmos O(log N) para contagem de tokens, modelos de duração lognormal e estimação de pausas prosódicas.
+
+## Características Principais
+
+- **Geração de texto por extenso**: Converte números em palavras portuguesas usando a política R1
+- **Contagem eficiente de sílabas**: Baseada em léxico fixo do português brasileiro
+- **Algoritmos O(log N)**: Contagem combinatória por blocos para grandes N
+- **Modelos de duração**: Microduração lognormal por sílaba + pausas prosódicas
+- **Estimação de confiança**: Intervalos de confiança para tempos estimados
+
+# Instalação
+
+```{r install, eval = FALSE}
+# Instalar dependências
+install.packages(c("tibble", "dplyr", "readr"))
+
+# Instalar PTEF
+devtools::install_github("MagnaSoluto/PTEF")
+```
+
+# Uso Básico
+
+## Estimação Simples
+
+```{r basic_estimation}
+library(ptef)
+
+# Estimação para N=1000
+result <- estimate(N = 1000, policy = "R1", B = 16, return_ci = TRUE)
+
+# Resultados
+cat("Tempo esperado:", round(result$mean, 3), "segundos\n")
+cat("Variância:", round(result$var, 6), "segundos²\n")
+cat("Desvio padrão:", round(sqrt(result$var), 3), "segundos\n")
+
+if (!is.null(result$ci95)) {
+  cat("IC 95%: [", round(result$ci95$lower, 3), ", ", 
+      round(result$ci95$upper, 3), "] segundos\n")
+}
+```
+
+## Análise de Componentes
+
+```{r components}
+# Detalhes da estimação
+details <- result$details
+
+cat("Total de sílabas:", details$total_syllables, "\n")
+cat("Duração das sílabas:", round(details$syllable_duration, 3), "segundos\n")
+cat("Duração das pausas:", round(details$pause_duration, 3), "segundos\n")
+
+# Contagem de pausas
+cat("\nContagem de pausas:\n")
+for (pause_type in names(details$pause_counts)) {
+  cat(pause_type, ":", details$pause_counts[[pause_type]], "\n")
+}
+```
+
+## Análise de Tokens
+
+```{r tokens}
+# Top 10 tokens mais frequentes
+token_counts <- details$token_counts
+sorted_tokens <- sort(token_counts, decreasing = TRUE)
+
+cat("Top 10 tokens mais frequentes:\n")
+for (i in 1:min(10, length(sorted_tokens))) {
+  token <- names(sorted_tokens)[i]
+  count <- sorted_tokens[i]
+  cat(sprintf("%2d. %-12s: %4d\n", i, token, count))
+}
+```
+
+# Análise de Crescimento
+
+## Múltiplos Valores de N
+
+```{r growth_analysis}
+# Valores de N para análise
+N_values <- c(100, 500, 1000, 2000, 5000, 10000)
+
+# Estimação para múltiplos valores
+results <- data.frame(
+  N = N_values,
+  mean = numeric(length(N_values)),
+  std = numeric(length(N_values)),
+  syllables = numeric(length(N_values))
+)
+
+for (i in seq_along(N_values)) {
+  N <- N_values[i]
+  result <- estimate(N = N, policy = "R1", B = 16, return_ci = TRUE)
+  
+  results$mean[i] <- result$mean
+  results$std[i] <- sqrt(result$var)
+  results$syllables[i] <- result$details$total_syllables
+}
+
+# Exibir resultados
+print(results)
+```
+
+## Visualizações
+
+```{r visualizations, fig.width = 12, fig.height = 8}
+# Configurar layout
+par(mfrow = c(2, 2))
+
+# Gráfico 1: Tempo vs N
+plot(results$N, results$mean, 
+     type = "o", pch = 19, col = "blue",
+     xlab = "N (número máximo)", ylab = "Tempo (segundos)",
+     main = "Tempo de Pronúncia vs N")
+grid()
+
+# Gráfico 2: Componentes
+plot(results$N, results$syllables, 
+     type = "o", pch = 19, col = "red",
+     xlab = "N (número máximo)", ylab = "Número de sílabas",
+     main = "Sílabas vs N")
+grid()
+
+# Gráfico 3: Eficiência
+time_per_syllable <- results$mean / results$syllables
+plot(results$N, time_per_syllable, 
+     type = "o", pch = 19, col = "green",
+     xlab = "N (número máximo)", ylab = "Tempo por sílaba (segundos)",
+     main = "Eficiência: Tempo por Sílaba")
+grid()
+
+# Gráfico 4: Crescimento logarítmico
+plot(results$N, results$mean, 
+     type = "o", pch = 19, col = "purple",
+     xlab = "N (escala log)", ylab = "Tempo (escala log)",
+     main = "Crescimento Logarítmico", log = "xy")
+grid()
+
+# Reset layout
+par(mfrow = c(1, 1))
+```
+
+# Parâmetros Personalizados
+
+## Parâmetros de Duração
+
+```{r custom_duration}
+# Criar parâmetros personalizados
+duration_params <- create_params(
+  mu = 0.2,           # Média do log da duração
+  sigma = 0.4,        # Desvio padrão do log da duração
+  speaker_effect = 1.2, # Efeito do falante
+  fatigue_coeff = 0.01 # Coeficiente de fadiga
+)
+
+# Usar parâmetros personalizados
+result_custom <- estimate(
+  N = 1000, 
+  policy = "R1", 
+  B = 16, 
+  params = create_params(duration_params = duration_params),
+  return_ci = TRUE
+)
+
+cat("Tempo com parâmetros personalizados:", round(result_custom$mean, 3), "segundos\n")
+cat("Tempo com parâmetros padrão:", round(result$mean, 3), "segundos\n")
+```
+
+## Parâmetros de Pausas
+
+```{r custom_pauses}
+# Criar parâmetros de pausas personalizados
+pause_params <- create_pause_params(
+  weak_pause_duration = 0.15,    # Duração de pausas fracas
+  strong_pause_duration = 0.4,   # Duração de pausas fortes
+  weak_pause_prob = 0.4,         # Probabilidade de pausas fracas
+  strong_pause_prob = 0.15       # Probabilidade de pausas fortes
+)
+
+# Usar parâmetros personalizados
+result_custom_pauses <- estimate(
+  N = 1000, 
+  policy = "R1", 
+  B = 16, 
+  params = create_params(pause_params = pause_params),
+  return_ci = TRUE
+)
+
+cat("Tempo com pausas personalizadas:", round(result_custom_pauses$mean, 3), "segundos\n")
+cat("Tempo com pausas padrão:", round(result$mean, 3), "segundos\n")
+```
+
+# Validação e Testes
+
+## Validação de Contagem
+
+```{r validation}
+# Validar contagem para N pequeno
+N_validation <- 100
+result_fast <- count_tokens_up_to_n(N_validation, policy = "R1")
+
+# Contagem direta para comparação
+direct_counts <- integer(0)
+for (n in 1:N_validation) {
+  tokens <- text_number(n)
+  for (token in tokens) {
+    if (token %in% names(direct_counts)) {
+      direct_counts[token] <- direct_counts[token] + 1
+    } else {
+      direct_counts[token] <- 1
+    }
+  }
+}
+
+# Comparar resultados
+all_tokens <- unique(c(names(result_fast$tokens), names(direct_counts)))
+differences <- 0
+for (token in all_tokens) {
+  fast_count <- result_fast$tokens[token]
+  if (is.na(fast_count)) fast_count <- 0
+  direct_count <- direct_counts[token]
+  if (is.na(direct_count)) direct_count <- 0
+  
+  if (fast_count != direct_count) {
+    differences <- differences + 1
+    cat("Diferença encontrada para token '", token, "': rápido=", fast_count, 
+        ", direto=", direct_count, "\n")
+  }
+}
+
+if (differences == 0) {
+  cat("Validação PASSED: Contagem rápida bate com contagem direta\n")
+} else {
+  cat("Validação FAILED: Encontradas", differences, "diferenças\n")
+}
+```
+
+# Casos de Uso
+
+## Aplicações Práticas
+
+O PTEF pode ser usado em várias aplicações:
+
+1. **Síntese de Fala**: Estimar tempos de pronúncia para sistemas TTS
+2. **Análise de Discurso**: Estudar padrões de duração em português brasileiro
+3. **Acessibilidade**: Calcular tempos de leitura para textos numéricos
+4. **Linguística Computacional**: Pesquisar propriedades prosódicas do português
+
+## Exemplo: Sistema de Leitura
+
+```{r reading_system}
+# Simular sistema de leitura com tempo estimado
+def estimate_reading_time(numbers) {
+  total_time <- 0
+  for (n in numbers) {
+    result <- estimate(n, return_ci = FALSE)
+    total_time <- total_time + result$mean
+  }
+  return(total_time)
+}
+
+# Exemplo de uso
+numbers_to_read <- c(1, 25, 100, 500, 1000)
+estimated_time <- estimate_reading_time(numbers_to_read)
+
+cat("Tempo estimado para ler números", paste(numbers_to_read, collapse = ", "), 
+    ":", round(estimated_time, 2), "segundos\n")
+```
+
+# Conclusão
+
+O PTEF fornece uma base sólida para estimação de tempos de pronúncia em português brasileiro. Suas principais vantagens incluem:
+
+- **Eficiência**: Algoritmos O(log N) para grandes valores de N
+- **Precisão**: Modelos baseados em dados linguísticos reais
+- **Flexibilidade**: Parâmetros ajustáveis para diferentes contextos
+- **Validação**: Testes abrangentes e validação cruzada
+
+Para mais informações, consulte a documentação completa do pacote e os artigos de referência.
+
+# Referências
+
+- Artigo original: "PTEF: Um Framework Probabilístico para Estimar o Tempo de Pronúncia de Sequências Numéricas no Português Brasileiro"
+- Repositório: https://github.com/MagnaSoluto/PTEF
+- Documentação: https://github.com/MagnaSoluto/PTEF/docs

@@ -1,0 +1,77 @@
+name: CI Python
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'python/**'
+      - '.github/workflows/ci-python.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'python/**'
+      - '.github/workflows/ci-python.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.10, 3.11, 3.12]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e python/[dev]
+
+    - name: Lint with ruff
+      run: |
+        ruff --output-format=github python/src/ptef/
+
+    - name: Check formatting with black
+      run: |
+        black --check python/src/ptef/
+
+    - name: Type check with mypy
+      run: |
+        mypy python/src/ptef/
+
+    - name: Test with pytest
+      run: |
+        pytest python/tests/ --cov=python/src/ptef --cov-report=xml --maxfail=1 -q
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: python
+        name: codecov-python
+        fail_ci_if_error: false
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e python/[dev]
+
+    - name: Run pre-commit
+      uses: pre-commit/action@v3.0.0
+      with:
+        extra_args: --all-files

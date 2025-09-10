@@ -1,0 +1,24 @@
+Package: ptef
+Type: Package
+Title: PTEF - Pronunciation-Time Estimation Framework for Brazilian Portuguese
+Version: 0.1.0
+Authors@R: person("PTEF", "Team", email = "ptef@example.com", role = c("aut", "cre"))
+Description: A probabilistic framework for estimating pronunciation time of numerical sequences in Brazilian Portuguese. Implements O(log N) algorithms for token counting, lognormal duration models, and prosodic pause estimation.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.2.3
+Depends: R (>= 4.3.0)
+Imports: 
+    tibble,
+    dplyr,
+    readr,
+    stats,
+    methods
+Suggests: 
+    testthat (>= 3.0.0),
+    lintr,
+    roxygen2
+URL: https://github.com/MagnaSoluto/PTEF
+BugReports: https://github.com/MagnaSoluto/PTEF/issues
+Roxygen: list(markdown = TRUE)
