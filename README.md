@@ -3,7 +3,7 @@
 [![CI Python](https://github.com/MagnaSoluto/PTEF/workflows/CI%20Python/badge.svg)](https://github.com/MagnaSoluto/PTEF/actions/workflows/ci-python.yml)
 [![CI R](https://github.com/MagnaSoluto/PTEF/workflows/CI%20R/badge.svg)](https://github.com/MagnaSoluto/PTEF/actions/workflows/ci-r.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/MagnaSoluto/PTEF)
+[![Version](https://img.shields.io/badge/version-1.0.1-blue.svg)](https://github.com/MagnaSoluto/PTEF)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17090324.svg)](https://doi.org/10.5281/zenodo.17090324)
 
 Um framework probabilístico para estimar o tempo de pronúncia de sequências numéricas no português brasileiro.
