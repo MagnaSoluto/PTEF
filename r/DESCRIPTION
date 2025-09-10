@@ -1,7 +1,7 @@
 Package: ptef
 Type: Package
 Title: PTEF - Pronunciation-Time Estimation Framework for Brazilian Portuguese
-Version: 0.1.0
+Version: 1.0.1
 Authors@R: person("PTEF", "Team", email = "ptef@example.com", role = c("aut", "cre"))
 Description: A probabilistic framework for estimating pronunciation time of numerical sequences in Brazilian Portuguese. Implements O(log N) algorithms for token counting, lognormal duration models, and prosodic pause estimation.
 License: MIT + file LICENSE
