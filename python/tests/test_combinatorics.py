@@ -19,7 +19,7 @@ def test_count_tokens_up_to_999():
     assert "um" in counts
     assert "dois" in counts
     assert "e" in counts
-    assert "mil" in counts
+    # "mil" only appears in numbers >= 1000, so not in 1-999
     
     # Check that counts are positive
     for token, count in counts.items():
@@ -36,13 +36,14 @@ def test_count_tokens_up_to_N_small():
     
     # Check that we have some tokens
     assert len(token_counts) > 0
-    assert len(connective_counts) > 0
+    # For N=10, there might not be any connectives
     
     # Check that "um" appears once
     assert token_counts["um"] == 1
     
-    # Check that "e" appears in connectives
-    assert "e" in connective_counts
+    # Check that "e" appears in connectives (if any)
+    if len(connective_counts) > 0:
+        assert "e" in connective_counts
 
 
 def test_count_tokens_up_to_N_medium():
