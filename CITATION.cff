@@ -1,13 +1,13 @@
-cff-version: 1.2.0
+cff-version: 1.1.0
 message: "If you use this software, please cite it as below."
 authors:
-  - family-names: "PTEF Team"
-    given-names: ""
-    email: "ptef@example.com"
-    orcid: "https://orcid.org/0000-0000-0000-0000"
+  - family-names: "Carvalho dos Santos"
+    given-names: "Adriano"
+    email: "adriano.santos@magnasoluto.com.br"
+    orcid: "https://orcid.org/0009-0009-3407-6189"
 title: "PTEF - Pronunciation-Time Estimation Framework for Brazilian Portuguese"
-version: 0.1.0
-date-released: 2024-01-01
+version: v1.0.0
+date-released: 2025-09-10
 url: "https://github.com/MagnaSoluto/PTEF"
 license: MIT
 keywords:
@@ -25,9 +25,8 @@ preferred-citation:
   type: article
   title: "PTEF: Um Framework Probabilístico para Estimar o Tempo de Pronúncia de Sequências Numéricas no Português Brasileiro"
   authors:
-    - family-names: "PTEF Team"
-      given-names: ""
+    - family-names: "Cavalho dos Santos"
+      given-names: "Adriano"
   journal: "arXiv preprint"
-  year: 2024
+  year: 2025
   url: "https://github.com/MagnaSoluto/PTEF"
-  doi: "10.5281/zenodo.0000000"
